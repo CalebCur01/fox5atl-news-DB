@@ -93,9 +93,9 @@ def update_DB(url):
 def parse_news(news): #returns 1 for page already visited, 0 otherwise
 
     global curID
-    #We skip a page if it's already been visited
+    #We skip the article if it's already been visited
     if(page_dict.get(news) == 1):
-        print("Page already stored\n")
+        print("Article already stored\n")
         return 1
 
     #Now we parse the news article
@@ -147,7 +147,7 @@ def parse_news(news): #returns 1 for page already visited, 0 otherwise
         curID += 1
         cur_id = curID
 
-    #We add the entry to our database
+    #We prepare to add the entry to our database
     curTime = datetime.datetime.now()
     db_operations.append((curID,news,curTime,title,author,date,keyword,content))
     print("Prepared to add to database!\n")
