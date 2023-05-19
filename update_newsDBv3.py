@@ -58,7 +58,7 @@ tags = ["unusual","politics","consumer","entertainment","business","health","vir
 
 def update_DB(url):
     print(f"Now searching:{url}\n")
-    #We use this to stop early if we hit a certain number of already stored pages
+    #We stop early if we exceed 5 articles that have already been stored into our database
     already_visited_count = 0
 
     global curID
@@ -88,7 +88,7 @@ def update_DB(url):
         already_visited_count += result
         if already_visited_count >= 5:
             print("Exceeded max number of already visited pages. Stopping early!")
-            return #stop processing if we exceed 25 already visited pages
+            return #stop processing if we exceed 5 already visited pages
 
 def parse_news(news): #returns 1 for page already visited, 0 otherwise
 
