@@ -50,15 +50,16 @@ cursor = conn.cursor()
 
 #These are the sources we use to find articles
 single_page_tags = ["news","local-news","national-news"]
-tags = ["unusual","politics","consumer","entertainment","business","health","viral","us/ga",
-        "politics/ga-politics","us/ga/cobb-county","us/ga/dekalb-county",
-        "us/ga/fulton-county","us/ga/atlanta","us/ga/gwinnett-county",
-        "us/ga/clayton-county","money/us-economy","money","business/personal-finance",
-        "series/i-team","series/fox-medical-team"]
+multi_page_tags = {"unusual":False,"politics":False,"consumer":False,"entertainment":False,
+                   "business":False,"health":False,"viral":False,"us/ga":False,
+                    "politics/ga-politics":False,"us/ga/cobb-county":False,"us/ga/dekalb-county":False,
+                    "us/ga/fulton-county":False,"us/ga/atlanta":False,"us/ga/gwinnett-county":False,
+                    "us/ga/clayton-county":False,"money/us-economy":False,"money":False,"business/personal-finance":False,
+                    "series/i-team":False,"series/fox-medical-team":False} #If value is True, we stop searching
 
-def update_DB(url):
+def update_DB(url,tag="none"):
     print(f"Now searching:{url}\n")
-    #We stop early if we exceed 5 articles that have already been stored into our database
+    #We use this to stop early if we hit a certain number of already stored pages
     already_visited_count = 0
 
     global curID
@@ -88,14 +89,17 @@ def update_DB(url):
         already_visited_count += result
         if already_visited_count >= 5:
             print("Exceeded max number of already visited pages. Stopping early!")
-            return #stop processing if we exceed 5 already visited pages
+            if tag != "none":
+                multi_page_tags[tag] = True
+
+            return #stop early if we exceed 5 already visited pages
 
 def parse_news(news): #returns 1 for page already visited, 0 otherwise
 
     global curID
-    #We skip the article if it's already been visited
+    #We skip a page if it's already been visited
     if(page_dict.get(news) == 1):
-        print("Article already stored\n")
+        print("Page already stored\n")
         return 1
 
     #Now we parse the news article
@@ -147,7 +151,7 @@ def parse_news(news): #returns 1 for page already visited, 0 otherwise
         curID += 1
         cur_id = curID
 
-    #We prepare to add the entry to our database
+    #We add the entry to our database
     curTime = datetime.datetime.now()
     db_operations.append((curID,news,curTime,title,author,date,keyword,content))
     print("Prepared to add to database!\n")
@@ -160,10 +164,16 @@ for tag in single_page_tags:
     url = "https://www.fox5atlanta.com" + '/' + tag
     update_DB(url)
 
-for tag in tags:
+for tag,bval in multi_page_tags.items(): 
     for i in range (1,9):
         url = "https://www.fox5atlanta.com" + "/tag/" + tag + "?page=" + str(i)
-        update_DB(url)
+        bval = multi_page_tags[tag]
+
+        if bval:
+            print(f"No new articles in {tag}. Continuing.") #Skip to next tag if there's no new articles
+            break
+        else:
+            update_DB(url,tag)
     
 # perform all database operations in a single transaction
 for operation in db_operations:
